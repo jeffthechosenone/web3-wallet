@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101311">
+  <title>Orbit — Multi-chain wallet &amp; market pulse</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101311;
+      --panel: #171b18;
+      --panel-raised: #1d221e;
+      --line: #2a302b;
+      --text: #f0f3ef;
+      --muted: #929b93;
+      --green: #c8fa78;
+      --green-dark: #192313;
+      --aqua: #6de6d0;
+      --red: #ff8e83;
+      --radius: 18px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    button, input, select { font: inherit; }
+    button { color: inherit; }
+    a { color: inherit; text-decoration: none; }
+
+    .world-wallpaper {
+      position: fixed;
+      z-index: 0;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: .8;
+      pointer-events: none;
+    }
+
+    .app-shell { position: relative; z-index: 1; display: flex; min-height: 100vh; }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      display: flex;
+      flex: 0 0 238px;
+      flex-direction: column;
+      height: 100vh;
+      padding: 28px 18px 22px;
+      border-right: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 0 12px;
+      font-size: 19px;
+      font-weight: 720;
+      letter-spacing: -.7px;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 31px;
+      height: 31px;
+      place-items: center;
+      border-radius: 10px;
+      background: var(--green);
+      color: #141910;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .nav-label {
+      margin: 43px 12px 12px;
+      color: #69726a;
+      font-size: 10px;
+      font-weight: 750;
+      letter-spacing: 1.3px;
+      text-transform: uppercase;
+    }
+
+    .nav-list { display: grid; gap: 5px; }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 43px;
+      padding: 0 12px;
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      transition: background .18s ease, color .18s ease;
+    }
+
+    .nav-link:hover, .nav-link.active { background: var(--panel-raised); color: var(--text); }
+    .nav-link.active .nav-icon { color: var(--green); }
+    .nav-icon { width: 18px; color: #7e887f; font-size: 17px; text-align: center; }
+    .sidebar-spacer { flex: 1; }
+
+    .network-note {
+      margin: 12px 4px 0;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.55;
+    }
+
+    .network-note strong { display: block; margin-bottom: 5px; color: var(--text); font-size: 12px; }
+
+    main { width: min(1110px, 100%); margin: 0 auto; padding: 28px 38px 56px; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 50px;
+    }
+
+    .workspace-view[hidden] { display: none !important; }
+    .workspace-intro { margin: 0 0 20px; color: var(--muted); font-size: 13px; line-height: 1.65; }
+    .workspace-intro strong { color: var(--text); font-weight: 650; }
+    .workspace-actions { display: flex; flex-wrap: wrap; gap: 9px; margin: -4px 0 20px; }
+    .overview-market-actions { margin-top: 14px; }
+    .activity-explorer-link { display: inline-flex; margin: -5px 0 17px; }
+    .defi-swap-card { max-width: 660px; margin-bottom: 20px; }
+    .overview-highlights { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+    .overview-card { padding: 20px; }
+    .overview-card h2 { margin: 0; font-size: 14px; }
+    .overview-card p { margin: 8px 0 16px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+    .overview-market-values { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .overview-market-values > div { min-width: 0; padding: 11px; border: 1px solid var(--line); border-radius: 10px; background: rgba(15,19,16,.6); }
+    .overview-market-values span { display: block; color: var(--muted); font-size: 9px; }
+    .overview-market-values strong { display: block; overflow: hidden; margin-top: 6px; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .overview-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .overview-actions .secondary-button { min-height: 36px; font-size: 11px; }
+
+    .eyebrow {
+      margin: 0 0 7px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+    }
+
+    h1 { margin: 0; font-size: clamp(24px, 3vw, 32px); letter-spacing: -1.2px; }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+
+    .network-pill, .wallet-button, .secondary-button, .primary-button, .icon-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: var(--panel);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .network-pill { padding: 0 13px; color: var(--muted); }
+    .network-dot { width: 8px; height: 8px; border-radius: 50%; background: #8b8bff; box-shadow: 0 0 12px rgba(139,139,255,.55); }
+    .network-select { min-height: 38px; width: auto; padding: 0 22px 0 0; border: 0; background: transparent; color: var(--text); cursor: pointer; font-size: 11px; }
+    .wallet-button, .secondary-button, .primary-button, .icon-button { cursor: pointer; transition: transform .16s ease, background .16s ease, border-color .16s ease; }
+    .wallet-button { padding: 0 16px; border-color: var(--green); background: var(--green); color: #17200f; }
+    .wallet-button:hover, .primary-button:hover { transform: translateY(-1px); background: #d6ff98; }
+    .secondary-button { padding: 0 14px; color: var(--text); }
+    .secondary-button:hover, .icon-button:hover { border-color: #59635a; background: var(--panel-raised); }
+    .icon-button { width: 38px; min-height: 38px; padding: 0; color: var(--muted); }
+    button:disabled { cursor: wait; opacity: .6; transform: none; }
+
+    .dashboard { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(270px, .85fr); gap: 18px; }
+    .card { border: 1px solid var(--line); border-radius: var(--radius);     background: rgba(19, 25, 23, .86); }
+    .balance-card { position: relative; overflow: hidden; min-height: 250px; padding: 27px 28px; }
+    .balance-card::after {
+      position: absolute;
+      top: -88px;
+      right: -72px;
+      width: 270px;
+      height: 270px;
+      border: 1px solid rgba(200,250,120,.12);
+      border-radius: 50%;
+      box-shadow: 0 0 0 34px rgba(200,250,120,.025), 0 0 0 70px rgba(200,250,120,.018);
+      content: "";
+      pointer-events: none;
+    }
+
+    .card-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .card-heading h2 { margin: 0; font-size: 13px; font-weight: 620; }
+    .card-caption { color: var(--muted); font-size: 11px; }
+    .balance-amount { margin: 35px 0 7px; font-size: clamp(34px, 5vw, 48px); font-weight: 620; letter-spacing: -2.4px; }
+    .balance-unit { color: var(--muted); font-size: 13px; }
+    .balance-actions { display: flex; gap: 9px; margin-top: 26px; }
+    .primary-button { min-width: 105px; padding: 0 16px; border-color: var(--green); background: var(--green); color: #17200f; }
+
+    .quick-card { display: flex; flex-direction: column; justify-content: space-between; min-height: 250px; padding: 24px; }
+    .quick-card h2 { margin: 0; font-size: 15px; letter-spacing: -.2px; }
+    .quick-card p { margin: 9px 0 18px; color: var(--muted); font-size: 12px; line-height: 1.65; }
+    .swap-form { display: grid; gap: 10px; }
+    .field-label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 10px; font-weight: 650; }
+    .select-wrap { position: relative; }
+    select, input {
+      width: 100%;
+      min-height: 42px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      outline: none;
+      background: #121613;
+      color: var(--text);
+      font-size: 12px;
+    }
+    select:focus, input:focus { border-color: #7f9d5a; }
+    .swap-arrow { position: absolute; z-index: 1; top: 50%; right: 12px; color: var(--muted); pointer-events: none; transform: translateY(-50%); }
+    .swap-button { width: 100%; margin-top: 2px; }
+    .helper { margin: 3px 0 0 !important; font-size: 10px !important; }
+
+    .market-panel {
+      position: relative;
+      overflow: hidden;
+      margin: -23px 0 27px;
+      padding: 21px;
+      border: 1px solid rgba(200,250,120,.16);
+      border-radius: var(--radius);
+      background:
+        radial-gradient(ellipse at 12% 0%, rgba(200,250,120,.08), transparent 44%),
+        linear-gradient(125deg, rgba(16,25,24,.92), rgba(15,21,22,.88));
+    }
+
+    .market-panel::before {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(200,250,120,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(200,250,120,.025) 1px, transparent 1px);
+      background-size: 32px 32px;
+      content: "";
+      mask-image: linear-gradient(90deg, #000, transparent 85%);
+      pointer-events: none;
+    }
+
+    .market-panel > * { position: relative; }
+    .market-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 16px; }
+    .market-heading h2 { margin: 0; font-size: 16px; letter-spacing: -.4px; }
+    .market-subtitle { margin: 5px 0 0; color: var(--muted); font-size: 10px; }
+    .market-live { display: inline-flex; align-items: center; gap: 7px; color: var(--green); font-size: 10px; font-weight: 650; white-space: nowrap; }
+    .market-live .network-dot { width: 7px; height: 7px; background: var(--green); box-shadow: 0 0 10px rgba(200,250,120,.7); animation: pulse 1.8s infinite; }
+    @keyframes pulse { 50% { opacity: .4; box-shadow: 0 0 2px rgba(200,250,120,.3); } }
+    .market-layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(225px, .75fr); gap: 17px; }
+    .market-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+    .market-coin { min-width: 0; padding: 12px; border: 1px solid rgba(55,64,56,.82); border-radius: 12px; background: rgba(15,19,16,.72); }
+    .market-coin-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .market-coin-name { overflow: hidden; color: var(--muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .market-coin-symbol { color: var(--text); font-weight: 700; }
+    .market-price { margin-top: 9px; font-size: 14px; font-weight: 650; letter-spacing: -.3px; }
+    .market-change { margin-top: 4px; font-size: 10px; font-weight: 650; }
+    .market-change.up { color: var(--green); }
+    .market-change.down { color: var(--red); }
+    .market-sparkline { display: block; width: 100%; height: 24px; margin-top: 7px; overflow: visible; }
+    .market-sparkline path { fill: none; stroke: var(--green); stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+    .market-sparkline.down path { stroke: var(--red); }
+    .market-feed { min-height: 100%; padding: 14px; border: 1px solid rgba(55,64,56,.82); border-radius: 12px; background: rgba(13,17,14,.78); }
+    .market-feed-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 11px; }
+    .market-feed-heading strong { font-size: 11px; }
+    .market-feed-heading span { color: var(--muted); font-size: 9px; }
+    .market-messages { display: grid; gap: 8px; }
+    .market-message { padding: 9px 10px; border-radius: 9px; background: var(--panel-raised); color: #c4cbc4; font-size: 10px; line-height: 1.5; overflow-wrap: anywhere; }
+    .market-message time { display: block; margin-top: 4px; color: #758076; font-size: 9px; }
+    .market-empty { padding: 10px 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
+    .market-meta { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 13px; color: var(--muted); font-size: 10px; }
+    .market-meta strong { color: var(--text); font-weight: 650; }
+    .market-updated { margin-left: auto; }
+
+    .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 36px 0 13px; }
+    .section-heading h2 { margin: 0; font-size: 16px; letter-spacing: -.35px; }
+    .text-link { color: var(--green); font-size: 11px; font-weight: 650; }
+
+    .asset-list { overflow: hidden; }
+    .asset-header, .asset-row {
+      display: grid;
+      grid-template-columns: minmax(145px, 1.2fr) minmax(90px, .7fr) minmax(80px, .7fr) minmax(75px, .65fr);
+      align-items: center;
+      gap: 12px;
+      padding: 0 20px;
+    }
+    .asset-header { min-height: 42px; border-bottom: 1px solid var(--line); color: #7f8980; font-size: 10px; }
+    .asset-row { min-height: 69px; border-bottom: 1px solid rgba(42,48,43,.75); }
+    .asset-row:last-child { border-bottom: 0; }
+    .asset-name { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .token-icon { display: grid; width: 33px; height: 33px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: #242927; font-size: 12px; font-weight: 750; }
+    .token-icon.eth { background: #272638; color: #aaa7ff; }
+    .token-icon.usdc { background: #152b42; color: #6ea8ff; }
+    .token-icon.usdt { background: #15362c; color: #64d9a8; }
+    .token-icon.weth { background: #342b1a; color: #e8c574; }
+    .token-title { overflow: hidden; font-size: 12px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+    .token-symbol { margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .asset-value, .asset-symbol { font-size: 11px; }
+    .asset-value { color: var(--text); }
+    .asset-symbol { color: var(--muted); }
+    .asset-usd { color: var(--muted); font-size: 10px; }
+    .portfolio-value { margin-top: 10px; color: var(--muted); font-size: 11px; }
+    .portfolio-value strong { color: var(--text); font-size: 14px; font-weight: 650; }
+    .asset-empty { padding: 28px 20px; color: var(--muted); font-size: 12px; text-align: center; }
+
+    .defi-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .protocol-card { display: flex; min-height: 188px; flex-direction: column; align-items: flex-start; padding: 18px; }
+    .protocol-heading { display: flex; align-items: center; gap: 10px; }
+    .protocol-mark { display: grid; width: 35px; height: 35px; place-items: center; border-radius: 11px; background: var(--panel-raised); color: var(--green); font-size: 15px; font-weight: 750; }
+    .protocol-heading h3 { margin: 0; font-size: 13px; }
+    .protocol-heading span { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .protocol-card p { flex: 1; margin: 13px 0 16px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+    .protocol-card .secondary-button { min-height: 36px; font-size: 11px; }
+    .protocol-card .secondary-button:disabled { cursor: not-allowed; }
+    .defi-disclaimer { margin: 12px 0 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
+
+    .chain-health { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 11px; margin-top: 20px; }
+    .health-item { min-width: 0; padding: 14px 16px; border: 1px solid rgba(81,112,106,.28); border-radius: 13px; background: rgba(16,24,24,.78); }
+    .health-label { display: block; color: var(--muted); font-size: 9px; font-weight: 650; letter-spacing: .7px; text-transform: uppercase; }
+    .health-value { display: block; overflow: hidden; margin-top: 8px; color: var(--text); font-size: 13px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+    .health-caption { display: block; margin-top: 4px; color: #78877f; font-size: 9px; }
+    .health-indicator { display: inline-flex; align-items: center; gap: 7px; }
+    .health-indicator::before { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 9px rgba(200,250,120,.5); content: ""; }
+    .health-indicator.offline::before { background: var(--red); box-shadow: none; }
+
+    .bottom-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(250px, .8fr); gap: 18px; margin-top: 20px; }
+    .activity-card, .safety-card { padding: 22px; }
+    .activity-card h2, .safety-card h2 { margin: 0; font-size: 14px; }
+    .activity-empty { display: grid; min-height: 102px; place-items: center; color: var(--muted); font-size: 11px; text-align: center; }
+    .safety-card p { margin: 11px 0 0; color: var(--muted); font-size: 11px; line-height: 1.65; }
+    .safety-label { display: flex; align-items: center; gap: 8px; margin-top: 17px; color: var(--green); font-size: 10px; font-weight: 650; }
+    .safe-check { display: grid; width: 17px; height: 17px; place-items: center; border-radius: 50%; background: var(--green-dark); }
+
+    .notice { margin: 15px 0 0; color: var(--muted); font-size: 10px; line-height: 1.55; }
+    .status { display: none; margin: 16px 0 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: 11px; background: var(--panel); font-size: 12px; line-height: 1.55; overflow-wrap: anywhere; }
+    .status.visible { display: block; }
+    .status.error { border-color: rgba(255,142,131,.38); color: var(--red); }
+    .status.success { border-color: rgba(200,250,120,.28); color: var(--green); }
+    .status a { text-decoration: underline; text-underline-offset: 3px; }
+
+    .modal-backdrop { position: fixed; z-index: 5; inset: 0; display: none; place-items: center; padding: 18px; background: rgba(0,0,0,.68); }
+    .modal-backdrop.open { display: grid; }
+    .modal { width: min(410px, 100%); padding: 23px; border: 1px solid var(--line); border-radius: 17px; background: #171b18; box-shadow: 0 24px 80px rgba(0,0,0,.4); }
+    .modal-top { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 20px; }
+    .modal-top h2 { margin: 0; font-size: 17px; }
+    .form-stack { display: grid; gap: 14px; }
+    .modal-actions { display: flex; gap: 9px; margin-top: 5px; }
+    .modal-actions button { flex: 1; }
+    .modal-description { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+
+    footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 35px; color: #6f786f; font-size: 10px; }
+    footer a:hover { color: var(--text); }
+    .mobile-brand { display: none; }
+
+    @media (max-width: 880px) {
+      .app-shell { flex-direction: column; }
+      .sidebar {
+        position: relative;
+        top: auto;
+        flex: 0 0 auto;
+        flex-direction: row;
+        align-items: center;
+        width: 100%;
+        height: auto;
+        padding: 11px 20px;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .brand { flex: 0 0 auto; padding: 0; }
+      .nav-label, .sidebar-spacer, .network-note { display: none; }
+      .nav-list { display: flex; flex: 1; min-width: 0; gap: 4px; margin-left: 18px; overflow-x: auto; scrollbar-width: thin; }
+      .nav-link { flex: 0 0 auto; min-height: 36px; padding: 0 10px; white-space: nowrap; }
+      main { padding-right: 24px; padding-left: 24px; }
+      .dashboard { grid-template-columns: minmax(0, 1.2fr) minmax(250px, .8fr); }
+      .market-layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 700px) {
+      .sidebar { padding: 10px 14px; }
+      .nav-list { margin-left: 10px; }
+      .nav-link { min-height: 34px; gap: 7px; padding: 0 8px; font-size: 11px; }
+      main { padding: 22px 17px 35px; }
+      .topbar { flex-direction: column; align-items: stretch; margin-bottom: 31px; }
+      .topbar > .top-actions { align-self: flex-end; flex-wrap: wrap; justify-content: flex-end; max-width: 100%; }
+      .network-pill { display: inline-flex; min-height: 38px; padding: 0 9px; }
+      .network-select { font-size: 10px; }
+      .wallet-button { min-height: 39px; padding: 0 12px; font-size: 11px; }
+      .dashboard, .bottom-grid { grid-template-columns: 1fr; }
+      .market-panel { margin: -12px 0 25px; padding: 15px; }
+      .market-layout { grid-template-columns: 1fr; }
+      .market-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .market-feed { min-height: auto; }
+      .defi-grid { grid-template-columns: 1fr; }
+      .chain-health { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .overview-highlights { grid-template-columns: 1fr; }
+      .balance-card { min-height: 226px; padding: 22px; }
+      .quick-card { min-height: 0; }
+      .asset-header, .asset-row { grid-template-columns: minmax(105px, 1.2fr) minmax(65px, .8fr) minmax(60px, .7fr); padding: 0 11px; gap: 7px; }
+      .asset-header span:nth-child(4), .asset-row .asset-network { display: none; }
+      .asset-header span:nth-child(2) { grid-column: 2; }
+      .asset-row > :nth-child(2) { grid-column: 2; }
+      .asset-row > :nth-child(3) { grid-column: 3; }
+      .asset-row > :nth-child(4) { display: none; }
+      footer { flex-direction: column; }
+    }
+
+    @media (max-width: 380px) {
+      .topbar { gap: 8px; }
+      .eyebrow { font-size: 9px; }
+      .top-actions { gap: 6px; }
+      .icon-button { width: 34px; min-height: 34px; }
+      .wallet-button { padding: 0 9px; }
+      .balance-amount { font-size: 37px; }
+      .market-heading { flex-direction: column; gap: 8px; }
+      .market-heading > .top-actions { flex-wrap: wrap; }
+      .network-pill .network-dot { display: none; }
+      .health-item { padding: 12px; }
+      .asset-header, .asset-row { grid-template-columns: minmax(86px, 1.2fr) minmax(52px, .8fr) minmax(54px, .7fr); padding: 0 8px; gap: 4px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <canvas class="world-wallpaper" id="worldWallpaper" aria-hidden="true"></canvas>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Main navigation">
+      <a class="brand" href="#workspace-overview" aria-label="Orbit home">
+        <span class="brand-mark" aria-hidden="true">o</span>
+        <span>orbit</span>
+      </a>
+      <p class="nav-label">Workspaces</p>
+      <nav class="nav-list">
+        <a class="nav-link active" href="#workspace-overview" data-workspace-link="workspace-overview"><span class="nav-icon" aria-hidden="true">◫</span>Overview</a>
+        <a class="nav-link" href="#workspace-assets" data-workspace-link="workspace-assets"><span class="nav-icon" aria-hidden="true">◇</span>Assets</a>
+        <a class="nav-link" href="#workspace-activity" data-workspace-link="workspace-activity"><span class="nav-icon" aria-hidden="true">↗</span>Activity</a>
+        <a class="nav-link" href="#workspace-markets" data-workspace-link="workspace-markets"><span class="nav-icon" aria-hidden="true">⌁</span>Markets</a>
+        <a class="nav-link" href="#workspace-defi" data-workspace-link="workspace-defi"><span class="nav-icon" aria-hidden="true">◈</span>DeFi</a>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="network-note">
+        <strong id="sidebarNetwork">Ethereum Mainnet</strong>
+        Switch between supported EVM networks to view assets and send native tokens.
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" id="workspaceEyebrow">Your wallet at a glance</p>
+          <h1 id="workspaceTitle">Overview</h1>
+        </div>
+        <div class="top-actions">
+          <label class="network-pill" title="Switch connected wallet network">
+            <span class="network-dot" aria-hidden="true"></span>
+            <select class="network-select" id="networkSelect" aria-label="Select blockchain network">
+              <option value="" disabled>Unsupported network</option>
+              <option value="0x1">Ethereum</option>
+              <option value="0x2105">Base</option>
+              <option value="0xa4b1">Arbitrum</option>
+              <option value="0x89">Polygon</option>
+            </select>
+          </label>
+          <button class="icon-button" id="refreshButton" type="button" aria-label="Refresh wallet balances" title="Refresh balances">↻</button>
+          <button class="icon-button" id="privacyButton" type="button" aria-label="Hide wallet balances" title="Toggle balance privacy">◉</button>
+          <button class="wallet-button" id="connectButton" type="button">Connect wallet</button>
+        </div>
+      </header>
+      <div class="status" id="statusMessage" role="status" aria-live="polite"></div>
+
+      <div id="workspacePages">
+        <section class="workspace-view" id="workspace-overview" aria-labelledby="workspaceTitle">
+          <p class="workspace-intro">Your on-chain home: check your wallet, network health and market highlights, then jump into assets or DeFi.</p>
+          <div class="overview-highlights">
+            <article class="card overview-card">
+              <h2>Market at a glance</h2>
+              <p>Quick price context for Bitcoin and Ethereum. Open Markets for the full tracker and automated commentary.</p>
+              <div class="overview-market-values">
+                <div><span>BTC</span><strong id="overviewBitcoin">—</strong></div>
+                <div><span>ETH</span><strong id="overviewEthereum">—</strong></div>
+                <div><span>Total market · 24h</span><strong id="overviewMarketChange">—</strong></div>
+              </div>
+              <div class="overview-actions overview-market-actions">
+                <a class="secondary-button" href="#workspace-markets">Open market pulse ↗</a>
+              </div>
+            </article>
+            <article class="card overview-card">
+              <h2>Quick actions</h2>
+              <p>Review your holdings or explore decentralized finance apps. Transactions are always confirmed in your connected wallet.</p>
+              <div class="overview-actions">
+                <a class="secondary-button" href="#workspace-assets">View assets</a>
+                <a class="secondary-button" href="#workspace-activity">Transaction activity</a>
+                <a class="secondary-button" href="#workspace-defi">Explore DeFi</a>
+              </div>
+            </article>
+          </div>
+        </section>
+        <section class="workspace-view" id="workspace-assets" aria-labelledby="workspaceTitle" hidden>
+          <p class="workspace-intro">Holdings on the selected network. Token values are estimates from live market data and may not include every token in your wallet.</p>
+          <div class="workspace-actions">
+            <button class="primary-button" id="assetSendButton" type="button" disabled>↑ &nbsp;Send</button>
+            <button class="secondary-button" id="assetReceiveButton" type="button" disabled>↓ &nbsp;Receive</button>
+          </div>
+        </section>
+        <section class="workspace-view" id="workspace-activity" aria-labelledby="workspaceTitle" hidden>
+          <p class="workspace-intro">Track transactions initiated from this page and open your network’s block explorer for the full on-chain history.</p>
+          <a class="text-link activity-explorer-link" id="activityExplorerLink" href="https://etherscan.io" target="_blank" rel="noopener noreferrer">Open connected account in block explorer ↗</a>
+        </section>
+        <section class="workspace-view" id="workspace-markets" aria-labelledby="workspaceTitle" hidden>
+          <p class="workspace-intro">Track major crypto prices, 24-hour moves, total market capitalization and automated market summaries.</p>
+        </section>
+        <section class="workspace-view" id="workspace-defi" aria-labelledby="workspaceTitle" hidden>
+          <p class="workspace-intro">Swap, lend, borrow or stake through established DeFi apps. Each protocol opens separately and asks your wallet to approve transactions.</p>
+        </section>
+      </div>
+
+      <section id="markets" class="market-panel" aria-labelledby="marketTitle">
+        <div class="market-heading">
+          <div>
+            <h2 id="marketTitle">Global crypto market</h2>
+            <p class="market-subtitle">Live prices and 24-hour moves · market data by CoinGecko</p>
+          </div>
+          <div class="top-actions">
+            <span class="market-live"><span class="network-dot" aria-hidden="true"></span><span id="marketStatus">Connecting to live markets…</span></span>
+            <button class="icon-button" id="refreshMarketButton" type="button" aria-label="Refresh live market data" title="Refresh market data">↻</button>
+          </div>
+        </div>
+        <div class="market-layout">
+          <div id="marketGrid" class="market-grid" aria-live="polite">
+            <div class="market-empty">Loading live prices and market trends…</div>
+          </div>
+          <aside class="market-feed" aria-label="Automated market commentary">
+            <div class="market-feed-heading">
+              <strong>Market room</strong>
+              <span>Auto-generated · not human chat</span>
+            </div>
+            <div class="market-messages" id="marketMessages" aria-live="polite">
+              <div class="market-empty">Market summaries will appear here when live price data loads.</div>
+            </div>
+          </aside>
+        </div>
+        <div class="market-meta">
+          <span>Total crypto market cap <strong id="globalMarketCap">—</strong></span>
+          <span>24h market move <strong id="globalMarketChange">—</strong></span>
+          <span>BTC dominance <strong id="btcDominance">—</strong></span>
+          <span class="market-updated" id="marketUpdated">Waiting for market data</span>
+        </div>
+      </section>
+
+      <section class="chain-health" aria-label="Blockchain network status">
+        <article class="health-item">
+          <span class="health-label">Network</span>
+          <strong class="health-value health-indicator" id="connectionStatus">Wallet not connected</strong>
+          <span class="health-caption" id="chainIdCaption">Connect to read chain status</span>
+        </article>
+        <article class="health-item">
+          <span class="health-label">Latest block</span>
+          <strong class="health-value" id="latestBlock">—</strong>
+          <span class="health-caption">From connected wallet RPC</span>
+        </article>
+        <article class="health-item">
+          <span class="health-label">Gas price</span>
+          <strong class="health-value" id="gasPrice">—</strong>
+          <span class="health-caption">Indicative legacy gas price</span>
+        </article>
+        <article class="health-item">
+          <span class="health-label">Block explorer</span>
+          <a class="health-value text-link" id="explorerLink" href="https://etherscan.io" target="_blank" rel="noopener noreferrer">Open explorer ↗</a>
+          <span class="health-caption" id="explorerCaption">Ethereum Mainnet</span>
+        </article>
+      </section>
+
+      <section id="overview" class="dashboard" aria-label="Wallet overview">
+        <article class="card balance-card">
+          <div class="card-heading">
+            <h2>Wallet balance</h2>
+            <span class="card-caption" id="accountLabel">Not connected</span>
+          </div>
+          <div class="balance-amount" id="ethBalance">—</div>
+          <div class="balance-unit"><span id="nativeSymbol">ETH</span> <span aria-hidden="true">·</span> <span id="balanceNetwork">Ethereum Mainnet</span></div>
+          <div class="portfolio-value">Estimated portfolio value <strong id="portfolioValue">—</strong></div>
+          <div class="balance-actions">
+            <button class="primary-button" id="sendButton" type="button" disabled>↑ &nbsp;Send</button>
+            <button class="secondary-button" id="receiveButton" type="button" disabled>↓ &nbsp;Receive</button>
+          </div>
+        </article>
+
+        <article id="swap" class="card quick-card">
+          <div>
+            <div class="card-heading"><h2>Swap on Uniswap</h2><span class="card-caption" id="swapNetwork">Ethereum</span></div>
+            <p>Explore token swaps on this network. Review rates, fees, slippage and token approvals before confirming.</p>
+          </div>
+          <div class="swap-form">
+            <label>
+              <span class="field-label">You pay</span>
+              <span class="select-wrap">
+                <select id="swapInput" aria-label="Token to swap from">
+                  <option value="native">ETH · Ether</option>
+                </select>
+                <span class="swap-arrow" aria-hidden="true">⌄</span>
+              </span>
+            </label>
+            <label>
+              <span class="field-label">You receive</span>
+              <span class="select-wrap">
+                <select id="swapOutput" aria-label="Token to swap to">
+                  <option value="native">ETH · Ether</option>
+                </select>
+                <span class="swap-arrow" aria-hidden="true">⌄</span>
+              </span>
+            </label>
+            <button class="primary-button swap-button" id="swapButton" type="button">Continue to Uniswap ↗</button>
+            <p class="helper">Swap opens Uniswap in a new tab. Quotes and transactions are handled by Uniswap.</p>
+          </div>
+        </article>
+      </section>
+
+      <div id="assets" class="section-heading">
+        <h2>Your assets</h2>
+        <span class="card-caption" id="assetCaption">Connect to load on-chain balances</span>
+      </div>
+      <section class="card asset-list" aria-label="Token balances">
+        <div class="asset-header"><span>Asset</span><span>Balance</span><span>Value</span><span>Network</span></div>
+        <div id="assetRows"><div class="asset-empty">Connect your wallet to see your Ethereum assets.</div></div>
+      </section>
+
+      <div id="defiApps" class="section-heading">
+        <h2>Explore DeFi</h2>
+        <span class="card-caption">Use established protocols with your connected wallet</span>
+      </div>
+      <section class="defi-grid" aria-label="Decentralized finance apps">
+        <article class="card protocol-card">
+          <div class="protocol-heading">
+            <span class="protocol-mark" aria-hidden="true">⇄</span>
+            <div><h3>Uniswap</h3><span>Swap tokens</span></div>
+          </div>
+          <p>Explore token swaps on the selected network. Compare the quote and fee, then confirm directly in your wallet.</p>
+          <button class="secondary-button" id="openDeFiUniswap" type="button">Open swap ↗</button>
+        </article>
+        <article class="card protocol-card">
+          <div class="protocol-heading">
+            <span class="protocol-mark" aria-hidden="true">◉</span>
+            <div><h3>Aave</h3><span>Lend and borrow</span></div>
+          </div>
+          <p>Visit Aave to explore supported supply and borrow markets. Rates, collateral rules and supported networks vary.</p>
+          <a class="secondary-button" href="https://app.aave.com/" target="_blank" rel="noopener noreferrer">Open Aave ↗</a>
+        </article>
+        <article class="card protocol-card">
+          <div class="protocol-heading">
+            <span class="protocol-mark" aria-hidden="true">◌</span>
+            <div><h3>Lido</h3><span>Liquid staking</span></div>
+          </div>
+          <p>Explore ETH staking on Ethereum Mainnet. Staking has smart-contract, liquidity and market risks.</p>
+          <button class="secondary-button" id="openLido" type="button">Open Lido ↗</button>
+          <span class="card-caption" id="lidoAvailability"></span>
+        </article>
+      </section>
+      <p class="defi-disclaimer">These links open third-party apps; Orbit does not custody funds or execute DeFi trades here. Check the URL, network, token approvals, fees and transaction details before signing. DeFi can result in loss of funds.</p>
+
+      <section class="bottom-grid">
+        <article id="activity" class="card activity-card">
+          <div class="card-heading"><h2>Recent activity</h2><span class="card-caption">This wallet</span></div>
+          <div id="activityContent" class="activity-empty">Connect your wallet to get started.<br>New transactions will appear here.</div>
+        </article>
+        <article class="card safety-card">
+          <h2>Stay in control</h2>
+          <p>Orbit never asks for your recovery phrase or private key. Transactions are reviewed and signed in your connected wallet.</p>
+          <div class="safety-label"><span class="safe-check" aria-hidden="true">✓</span> Your keys stay in your wallet</div>
+        </article>
+      </section>
+
+      <footer>
+        <span>Orbit Wallet · <span id="footerNetwork">Ethereum Mainnet</span></span>
+        <span>Prices refresh every 60 seconds. Always verify network, address and transaction details before signing.</span>
+      </footer>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="sendModal" role="dialog" aria-modal="true" aria-labelledby="sendTitle">
+    <div class="modal">
+      <div class="modal-top">
+        <h2 id="sendTitle">Send ETH</h2>
+        <button class="icon-button" id="closeSendButton" type="button" aria-label="Close send dialog">×</button>
+      </div>
+      <form class="form-stack" id="sendForm">
+        <p class="modal-description" id="sendDescription">Send the network's native token. Check the recipient address and amount carefully before confirming in your wallet.</p>
+        <label>
+          <span class="field-label">Recipient address</span>
+          <input id="recipientInput" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="0x..." required>
+        </label>
+        <label>
+          <span class="field-label" id="amountLabel">Amount (ETH)</span>
+          <input id="amountInput" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" required>
+        </label>
+        <p class="status" id="sendError" role="alert" aria-live="assertive"></p>
+        <div class="modal-actions">
+          <button class="secondary-button" id="cancelSendButton" type="button">Cancel</button>
+          <button class="primary-button" id="confirmSendButton" type="submit">Review in wallet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const NETWORKS = {
+        "0x1": {
+          name: "Ethereum", fullName: "Ethereum Mainnet", nativeName: "Ether", symbol: "ETH", coinId: "ethereum",
+          rpcUrl: "https://ethereum.publicnode.com", explorer: "https://etherscan.io", uniswapSlug: "ethereum",
+          tokens: [
+            { symbol: "USDC", name: "USD Coin", address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals: 6, icon: "$", iconClass: "usdc", coinId: "usd-coin" },
+            { symbol: "USDT", name: "Tether USD", address: "0xdAC17F958D2ee523a2206206994597C13D831ec7", decimals: 6, icon: "₮", iconClass: "usdt", coinId: "tether" },
+            { symbol: "WETH", name: "Wrapped Ether", address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", decimals: 18, icon: "◆", iconClass: "weth", coinId: "ethereum" }
+          ]
+        },
+        "0x2105": {
+          name: "Base", fullName: "Base", nativeName: "Ether", symbol: "ETH", coinId: "ethereum",
+          rpcUrl: "https://mainnet.base.org", explorer: "https://basescan.org", uniswapSlug: "base",
+          tokens: [
+            { symbol: "USDC", name: "USD Coin", address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", decimals: 6, icon: "$", iconClass: "usdc", coinId: "usd-coin" },
+            { symbol: "WETH", name: "Wrapped Ether", address: "0x4200000000000000000000000000000000000006", decimals: 18, icon: "◆", iconClass: "weth", coinId: "ethereum" }
+          ]
+        },
+        "0xa4b1": {
+          name: "Arbitrum", fullName: "Arbitrum One", nativeName: "Ether", symbol: "ETH", coinId: "ethereum",
+          rpcUrl: "https://arb1.arbitrum.io/rpc", explorer: "https://arbiscan.io", uniswapSlug: "arbitrum",
+          tokens: [
+            { symbol: "USDC", name: "USD Coin", address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", decimals: 6, icon: "$", iconClass: "usdc", coinId: "usd-coin" },
+            { symbol: "USDT", name: "Tether USD", address: "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9", decimals: 6, icon: "₮", iconClass: "usdt", coinId: "tether" },
+            { symbol: "WETH", name: "Wrapped Ether", address: "0x82af49447d8a07e3bd95bd0d56f35241523fbab1", decimals: 18, icon: "◆", iconClass: "weth", coinId: "ethereum" }
+          ]
+        },
+        "0x89": {
+          name: "Polygon", fullName: "Polygon PoS", nativeName: "POL", symbol: "POL", coinId: "matic-network",
+          rpcUrl: "https://polygon-bor-rpc.publicnode.com", explorer: "https://polygonscan.com", uniswapSlug: "polygon",
+          tokens: [
+            { symbol: "USDC", name: "USD Coin", address: "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359", decimals: 6, icon: "$", iconClass: "usdc", coinId: "usd-coin" },
+            { symbol: "USDT", name: "Tether USD", address: "0xc2132D05D31c914a87C6611C10748AaCBaBDf8A5", decimals: 6, icon: "₮", iconClass: "usdt", coinId: "tether" },
+            { symbol: "WETH", name: "Wrapped Ether", address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619", decimals: 18, icon: "◆", iconClass: "weth", coinId: "ethereum" }
+          ]
+        }
+      };
+      const MARKET_URL = "https://api.coingecko.com/api/v3";
+      const MARKET_COINS = [
+        { id: "bitcoin", name: "Bitcoin", symbol: "BTC" },
+        { id: "ethereum", name: "Ethereum", symbol: "ETH" },
+        { id: "solana", name: "Solana", symbol: "SOL" },
+        { id: "binancecoin", name: "BNB", symbol: "BNB" },
+        { id: "ripple", name: "XRP", symbol: "XRP" },
+        { id: "cardano", name: "Cardano", symbol: "ADA" }
+      ];
+      const state = { provider: null, account: null, chainId: "0x1", busy: false, hiddenBalances: false, market: [], prices: new Map(), marketTimer: null, marketBusy: false, marketMessages: [], lastChatSnapshot: null, walletAssets: [] };
+      const WORKSPACES = {
+        "workspace-overview": { title: "Overview", eyebrow: "Your wallet at a glance" },
+        "workspace-assets": { title: "Assets", eyebrow: "Your on-chain holdings" },
+        "workspace-activity": { title: "Activity", eyebrow: "Your transaction timeline" },
+        "workspace-markets": { title: "Market Pulse", eyebrow: "Live crypto market data" },
+        "workspace-defi": { title: "Explore DeFi", eyebrow: "Decentralized finance" }
+      };
+      const elements = {
+        connectButton: document.getElementById("connectButton"),
+        refreshButton: document.getElementById("refreshButton"),
+        workspaceTitle: document.getElementById("workspaceTitle"),
+        workspaceEyebrow: document.getElementById("workspaceEyebrow"),
+        workspaceNavLinks: [...document.querySelectorAll("[data-workspace-link]")],
+        networkSelect: document.getElementById("networkSelect"),
+        sendButton: document.getElementById("sendButton"),
+        receiveButton: document.getElementById("receiveButton"),
+        assetSendButton: document.getElementById("assetSendButton"),
+        assetReceiveButton: document.getElementById("assetReceiveButton"),
+        ethBalance: document.getElementById("ethBalance"),
+        nativeSymbol: document.getElementById("nativeSymbol"),
+        balanceNetwork: document.getElementById("balanceNetwork"),
+        portfolioValue: document.getElementById("portfolioValue"),
+        accountLabel: document.getElementById("accountLabel"),
+        statusMessage: document.getElementById("statusMessage"),
+        assetRows: document.getElementById("assetRows"),
+        assetCaption: document.getElementById("assetCaption"),
+        activityContent: document.getElementById("activityContent"),
+        sendModal: document.getElementById("sendModal"),
+        sendForm: document.getElementById("sendForm"),
+        recipientInput: document.getElementById("recipientInput"),
+        amountInput: document.getElementById("amountInput"),
+        confirmSendButton: document.getElementById("confirmSendButton"),
+        sendError: document.getElementById("sendError"),
+        marketGrid: document.getElementById("marketGrid"),
+        marketStatus: document.getElementById("marketStatus"),
+        marketMessages: document.getElementById("marketMessages"),
+        marketUpdated: document.getElementById("marketUpdated"),
+        globalMarketCap: document.getElementById("globalMarketCap"),
+        globalMarketChange: document.getElementById("globalMarketChange"),
+        btcDominance: document.getElementById("btcDominance"),
+        swapInput: document.getElementById("swapInput"),
+        swapOutput: document.getElementById("swapOutput"),
+        lidoButton: document.getElementById("openLido"),
+        lidoAvailability: document.getElementById("lidoAvailability"),
+        privacyButton: document.getElementById("privacyButton"),
+        connectionStatus: document.getElementById("connectionStatus"),
+        chainIdCaption: document.getElementById("chainIdCaption"),
+        latestBlock: document.getElementById("latestBlock"),
+        gasPrice: document.getElementById("gasPrice"),
+        explorerLink: document.getElementById("explorerLink"),
+        explorerCaption: document.getElementById("explorerCaption"),
+        activityExplorerLink: document.getElementById("activityExplorerLink"),
+        overviewBitcoin: document.getElementById("overviewBitcoin"),
+        overviewEthereum: document.getElementById("overviewEthereum"),
+        overviewMarketChange: document.getElementById("overviewMarketChange")
+      };
+
+      function buildWorkspaceViews() {
+        const overviewPage = document.getElementById("workspace-overview");
+        const assetsPage = document.getElementById("workspace-assets");
+        const activityPage = document.getElementById("workspace-activity");
+        const marketsPage = document.getElementById("workspace-markets");
+        const defiPage = document.getElementById("workspace-defi");
+        const sourceDashboard = document.getElementById("overview");
+        const walletCard = sourceDashboard.querySelector(".balance-card");
+        const swapCard = document.getElementById("swap");
+        const overviewDashboard = document.createElement("section");
+        overviewDashboard.id = "overview";
+        overviewDashboard.className = "dashboard";
+        overviewDashboard.setAttribute("aria-label", "Wallet overview");
+        overviewDashboard.append(walletCard);
+        const chainHealth = document.querySelector(".chain-health");
+        const overviewHighlights = overviewPage.querySelector(".overview-highlights");
+        overviewPage.insertBefore(chainHealth, overviewHighlights);
+        overviewPage.insertBefore(overviewDashboard, overviewHighlights);
+
+        const assetHeading = document.getElementById("assets");
+        const assetList = document.querySelector(".asset-list");
+        assetsPage.append(assetHeading, assetList);
+
+        const activityLayout = document.querySelector(".bottom-grid");
+        activityPage.append(activityLayout);
+
+        const marketPanel = document.getElementById("markets");
+        marketsPage.append(marketPanel);
+
+        const defiHeading = document.getElementById("defiApps");
+        const defiGrid = document.querySelector(".defi-grid");
+        const defiDisclaimer = document.querySelector(".defi-disclaimer");
+        swapCard.classList.add("defi-swap-card");
+        defiPage.append(swapCard, defiHeading, defiGrid, defiDisclaimer);
+
+        sourceDashboard.remove();
+      }
+
+      function activateWorkspace() {
+        const aliases = {
+          overview: "workspace-overview",
+          assets: "workspace-assets",
+          activity: "workspace-activity",
+          markets: "workspace-markets",
+          market: "workspace-markets",
+          defiApps: "workspace-defi"
+        };
+        let workspaceId = window.location.hash.slice(1);
+        if (aliases[workspaceId]) {
+          workspaceId = aliases[workspaceId];
+          window.history.replaceState(null, "", "#" + workspaceId);
+        }
+        if (!Object.prototype.hasOwnProperty.call(WORKSPACES, workspaceId)) {
+          workspaceId = "workspace-overview";
+          window.history.replaceState(null, "", "#" + workspaceId);
+        }
+
+        document.querySelectorAll(".workspace-view").forEach((view) => {
+          view.hidden = view.id !== workspaceId;
+        });
+        elements.workspaceNavLinks.forEach((link) => {
+          const active = link.dataset.workspaceLink === workspaceId;
+          link.classList.toggle("active", active);
+          if (active) link.setAttribute("aria-current", "page");
+          else link.removeAttribute("aria-current");
+        });
+        const workspace = WORKSPACES[workspaceId];
+        elements.workspaceTitle.textContent = workspace.title;
+        elements.workspaceEyebrow.textContent = workspace.eyebrow;
+        document.title = workspace.title + " — Orbit Web3 wallet";
+      }
+
+      function showStatus(message, type) {
+        elements.statusMessage.textContent = "";
+        elements.statusMessage.className = "status visible" + (type ? " " + type : "");
+        if (typeof message === "string") {
+          elements.statusMessage.textContent = message;
+        } else {
+          elements.statusMessage.appendChild(message);
+        }
+      }
+
+      function clearStatus() {
+        elements.statusMessage.textContent = "";
+        elements.statusMessage.className = "status";
+      }
+
+      function showSendError(message) {
+        elements.sendError.textContent = message;
+        elements.sendError.className = "status visible error";
+      }
+
+      function abbreviatedAddress(address) {
+        return address.slice(0, 6) + "…" + address.slice(-4);
+      }
+
+      function formatUnits(value, decimals, maxFractionDigits) {
+        const amount = BigInt(value);
+        const scale = 10n ** BigInt(decimals);
+        const whole = amount / scale;
+        const fraction = (amount % scale).toString().padStart(decimals, "0").slice(0, maxFractionDigits).replace(/0+$/, "");
+        return fraction ? whole.toString() + "." + fraction : whole.toString();
+      }
+
+      function parseNative(value, symbol) {
+        const trimmed = value.trim();
+        if (!/^(?:\d+)(?:\.\d*)?$/.test(trimmed)) {
+          throw new Error("Enter a valid " + symbol + " amount using numbers and a decimal point.");
+        }
+        const parts = trimmed.split(".");
+        const fraction = parts[1] || "";
+        if (fraction.length > 18) {
+          throw new Error(symbol + " amounts can have at most 18 decimal places.");
+        }
+        const wei = BigInt(parts[0]) * 10n ** 18n + BigInt((fraction + "0".repeat(18)).slice(0, 18));
+        if (wei <= 0n) {
+          throw new Error("Enter an amount greater than zero.");
+        }
+        return "0x" + wei.toString(16);
+      }
+
+      function formatUsd(value) {
+        return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(value);
+      }
+
+      function setPrivateValue(element, value) {
+        element.classList.add("sensitive-value");
+        element.dataset.privateValue = value;
+        element.textContent = state.hiddenBalances ? "••••••" : value;
+      }
+
+      function updatePrivacy() {
+        document.querySelectorAll(".sensitive-value").forEach((element) => {
+          element.textContent = state.hiddenBalances ? "••••••" : element.dataset.privateValue;
+        });
+        elements.privacyButton.setAttribute("aria-label", state.hiddenBalances ? "Show wallet balances" : "Hide wallet balances");
+        elements.privacyButton.title = state.hiddenBalances ? "Show wallet balances" : "Hide wallet balances";
+      }
+
+      function currentNetwork() {
+        return NETWORKS[state.chainId] || null;
+      }
+
+      function updateNetworkUi() {
+        const network = currentNetwork();
+        elements.networkSelect.value = network ? state.chainId : "";
+        document.getElementById("sidebarNetwork").textContent = network ? network.fullName : "Unsupported network";
+        document.getElementById("balanceNetwork").textContent = network ? network.fullName : "Unsupported network";
+        document.getElementById("footerNetwork").textContent = network ? network.fullName : "Unsupported network";
+        document.getElementById("swapNetwork").textContent = network ? network.name : "Unsupported network";
+        elements.nativeSymbol.textContent = network ? network.symbol : "—";
+        document.getElementById("sendTitle").textContent = "Send " + (network ? network.symbol : "token");
+        document.getElementById("amountLabel").textContent = "Amount (" + (network ? network.symbol : "token") + ")";
+        document.getElementById("sendDescription").textContent = network
+          ? "Send " + network.nativeName + " on " + network.fullName + ". Confirm the network, recipient and amount in your wallet before signing."
+          : "Switch your wallet to a supported network before sending its native token.";
+        elements.explorerLink.href = network ? network.explorer : "#";
+        elements.explorerCaption.textContent = network ? network.fullName : "Unsupported network";
+        elements.lidoButton.disabled = !network || state.chainId !== "0x1";
+        elements.lidoAvailability.textContent = !network || state.chainId !== "0x1" ? "Ethereum Mainnet only" : "";
+        elements.connectionStatus.textContent = state.account
+          ? (network ? "Wallet connected" : "Unsupported network")
+          : "Wallet not connected";
+        elements.connectionStatus.classList.toggle("offline", Boolean(state.account && !network));
+        elements.chainIdCaption.textContent = network ? "Chain ID " + BigInt(state.chainId).toString(10) : "Connect to a supported EVM chain";
+        elements.assetSendButton.disabled = !state.account || !network || state.busy;
+        elements.assetReceiveButton.disabled = !state.account || state.busy;
+        elements.activityExplorerLink.href = network
+          ? network.explorer + (state.account ? "/address/" + encodeURIComponent(state.account) : "")
+          : "#";
+        updateSwapOptions(network);
+      }
+
+      function updateSwapOptions(network) {
+        if (!network) return;
+        const choices = [{ value: "native", label: network.symbol + " · " + network.nativeName }].concat(
+          network.tokens.map((token) => ({ value: token.address, label: token.symbol + " · " + token.name }))
+        );
+        [elements.swapInput, elements.swapOutput].forEach((select) => {
+          const previous = select.value;
+          select.replaceChildren(...choices.map((choice) => new Option(choice.label, choice.value)));
+          if (choices.some((choice) => choice.value.toLowerCase() === previous.toLowerCase())) select.value = previous;
+        });
+        elements.swapInput.value = "native";
+        elements.swapOutput.value = choices[1] ? choices[1].value : "native";
+      }
+
+      function setConnectedUi() {
+        const connected = Boolean(state.account);
+        elements.connectButton.textContent = connected ? abbreviatedAddress(state.account) : "Connect wallet";
+        elements.sendButton.disabled = !connected || !currentNetwork() || state.busy;
+        elements.receiveButton.disabled = !connected || state.busy;
+        elements.accountLabel.textContent = connected ? abbreviatedAddress(state.account) : "Not connected";
+        updateNetworkUi();
+      }
+
+      function tokenRow(token, amount, usdValue, networkName) {
+        const row = document.createElement("div");
+        row.className = "asset-row";
+        const name = document.createElement("div");
+        name.className = "asset-name";
+        const icon = document.createElement("span");
+        icon.className = "token-icon " + token.iconClass;
+        icon.textContent = token.icon;
+        icon.setAttribute("aria-hidden", "true");
+        const titleWrap = document.createElement("div");
+        const title = document.createElement("div");
+        title.className = "token-title";
+        title.textContent = token.name;
+        const symbol = document.createElement("div");
+        symbol.className = "token-symbol";
+        symbol.textContent = token.symbol;
+        titleWrap.append(title, symbol);
+        name.append(icon, titleWrap);
+        const balance = document.createElement("span");
+        balance.className = "asset-value";
+        setPrivateValue(balance, amount);
+        const value = document.createElement("span");
+        value.className = "asset-usd";
+        setPrivateValue(value, usdValue === null ? "—" : formatUsd(usdValue));
+        const network = document.createElement("span");
+        network.className = "asset-symbol asset-network";
+        network.textContent = networkName;
+        row.append(name, balance, value, network);
+        return row;
+      }
+
+      function clearWalletData(message) {
+        setPrivateValue(elements.ethBalance, "—");
+        setPrivateValue(elements.portfolioValue, "—");
+        state.walletAssets = [];
+        elements.assetCaption.textContent = "Connect to load on-chain balances";
+        const empty = document.createElement("div");
+        empty.className = "asset-empty";
+        empty.textContent = message;
+        elements.assetRows.replaceChildren(empty);
+      }
+
+      async function loadBalances() {
+        if (!state.provider || !state.account) return;
+        const network = currentNetwork();
+        if (!network) {
+          setPrivateValue(elements.ethBalance, "Unsupported network");
+          setPrivateValue(elements.portfolioValue, "—");
+          elements.assetCaption.textContent = "Switch to a supported network";
+          const empty = document.createElement("div");
+          empty.className = "asset-empty";
+          empty.textContent = "This network is not supported yet. Choose Ethereum, Base, Arbitrum or Polygon from the network menu.";
+          elements.assetRows.replaceChildren(empty);
+          state.walletAssets = [];
+          setConnectedUi();
+          return;
+        }
+
+        const account = state.account;
+        const chainId = state.chainId;
+        elements.assetCaption.textContent = "Reading balances from " + network.fullName;
+        const tokens = network.tokens;
+        const results = await Promise.allSettled([
+          state.provider.request({ method: "eth_getBalance", params: [account, "latest"] }),
+          ...tokens.map((token) => state.provider.request({
+            method: "eth_call",
+            params: [{
+              to: token.address,
+              data: "0x70a08231" + account.slice(2).toLowerCase().padStart(64, "0")
+            }, "latest"]
+          }))
+        ]);
+        if (state.account !== account || state.chainId !== chainId) return;
+        let nativeAmount = null;
+        if (results[0].status === "fulfilled") {
+          nativeAmount = Number(formatUnits(BigInt(results[0].value).toString(), 18, 8));
+          setPrivateValue(elements.ethBalance, nativeAmount.toLocaleString("en-US", { maximumFractionDigits: 6 }));
+        } else {
+          setPrivateValue(elements.ethBalance, "Unavailable");
+          showStatus("Could not read the ETH balance: " + (results[0].reason.message || "wallet request failed"), "error");
+        }
+        const nativePrice = state.prices.get(network.coinId);
+        const walletAssets = [];
+        if (nativeAmount !== null) walletAssets.push({ amount: nativeAmount, price: nativePrice });
+        const nativeUsdValue = nativePrice === undefined || nativeAmount === null ? null : nativeAmount * nativePrice;
+        const rows = [tokenRow(
+          { name: network.nativeName, symbol: network.symbol, icon: "◆", iconClass: "eth" },
+          elements.ethBalance.dataset.privateValue,
+          nativeUsdValue,
+          network.name
+        )];
+        let failedTokenReads = 0;
+        tokens.forEach((token, index) => {
+          const result = results[index + 1];
+          if (result.status === "fulfilled" && /^0x[0-9a-fA-F]+$/.test(result.value)) {
+            const rawBalance = BigInt(result.value);
+            const amount = Number(formatUnits(rawBalance.toString(), token.decimals, 8));
+            if (rawBalance > 0n) {
+              const price = state.prices.get(token.coinId);
+              walletAssets.push({ amount, price });
+              rows.push(tokenRow(token, formatUnits(rawBalance.toString(), token.decimals, 6), price === undefined ? null : amount * price, network.name));
+            }
+          } else {
+            failedTokenReads += 1;
+          }
+        });
+        state.walletAssets = walletAssets;
+        elements.assetRows.replaceChildren(...rows);
+        elements.assetCaption.textContent = failedTokenReads
+          ? "Some token balances could not be read"
+          : "Live on-chain balances · values are estimates";
+        if (failedTokenReads || results[0].status === "rejected" || walletAssets.some((asset) => asset.price === undefined)) {
+          setPrivateValue(elements.portfolioValue, "Price unavailable");
+        } else {
+          setPrivateValue(elements.portfolioValue, formatUsd(walletAssets.reduce((total, asset) => total + asset.amount * asset.price, 0)));
+        }
+        updatePrivacy();
+        if (results[0].status === "fulfilled" && elements.statusMessage.classList.contains("error")) clearStatus();
+      }
+
+      function formatPrice(price) {
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          maximumFractionDigits: price < 0.01 ? 6 : price < 1 ? 4 : 2
+        }).format(price);
+      }
+
+      function sparkline(prices, change) {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("viewBox", "0 0 100 24");
+        svg.setAttribute("preserveAspectRatio", "none");
+        svg.setAttribute("aria-hidden", "true");
+        svg.classList.add("market-sparkline");
+        if (change < 0) svg.classList.add("down");
+        if (!Array.isArray(prices) || prices.length < 2) return svg;
+        const low = Math.min(...prices);
+        const range = Math.max(...prices) - low || 1;
+        const points = prices.map((price, index) => {
+          const x = (index / (prices.length - 1)) * 100;
+          const y = 22 - ((price - low) / range) * 20;
+          return x.toFixed(2) + "," + y.toFixed(2);
+        }).join(" ");
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", "M " + points.replace(/ /g, " L "));
+        svg.appendChild(path);
+        return svg;
+      }
+
+      function renderMarketCards() {
+        const cards = state.market.map((coin) => {
+          const card = document.createElement("article");
+          card.className = "market-coin";
+          const top = document.createElement("div");
+          top.className = "market-coin-top";
+          const name = document.createElement("span");
+          name.className = "market-coin-name";
+          name.textContent = coin.name;
+          const symbol = document.createElement("span");
+          symbol.className = "market-coin-symbol";
+          symbol.textContent = coin.symbol.toUpperCase();
+          top.append(name, symbol);
+          const price = document.createElement("div");
+          price.className = "market-price";
+          price.textContent = formatPrice(coin.current_price);
+          const change = document.createElement("div");
+          const changeValue = Number(coin.price_change_percentage_24h);
+          change.className = "market-change " + (changeValue >= 0 ? "up" : "down");
+          change.textContent = (changeValue >= 0 ? "+" : "") + changeValue.toFixed(2) + "% · 24h";
+          card.append(top, price, change, sparkline(coin.sparkline_in_7d && coin.sparkline_in_7d.price, changeValue));
+          return card;
+        });
+        elements.marketGrid.replaceChildren(...cards);
+      }
+
+      function publishMarketMessages(globalData) {
+        const sorted = state.market.slice().sort((a, b) => Number(b.price_change_percentage_24h) - Number(a.price_change_percentage_24h));
+        if (!sorted.length) return;
+        const gainer = sorted[0];
+        const loser = sorted[sorted.length - 1];
+        const globalChange = Number(globalData.market_cap_change_percentage_24h_usd);
+        const previous = state.lastChatSnapshot;
+        const messages = [];
+        if (!previous) {
+          messages.push("Global market cap is " + (globalChange >= 0 ? "up " : "down ") + Math.abs(globalChange).toFixed(2) + "% over 24 hours.");
+          messages.push(gainer.symbol.toUpperCase() + " is leading the tracked movers at " + (Number(gainer.price_change_percentage_24h) >= 0 ? "+" : "") + Number(gainer.price_change_percentage_24h).toFixed(2) + "% in 24 hours.");
+          messages.push(loser.symbol.toUpperCase() + " is the weakest tracked mover at " + Number(loser.price_change_percentage_24h).toFixed(2) + "% in 24 hours.");
+        } else {
+          if (Math.abs(globalChange - previous.globalChange) >= 0.1) {
+            messages.push("Market breadth shifted: total crypto market cap is now " + (globalChange >= 0 ? "up " : "down ") + Math.abs(globalChange).toFixed(2) + "% over 24 hours.");
+          }
+          if (gainer.symbol !== previous.gainer || Math.abs(Number(gainer.price_change_percentage_24h) - previous.gainerChange) >= 0.5) {
+            messages.push(gainer.symbol.toUpperCase() + " is currently the strongest tracked mover at " + (Number(gainer.price_change_percentage_24h) >= 0 ? "+" : "") + Number(gainer.price_change_percentage_24h).toFixed(2) + "% over 24 hours.");
+          }
+          if (loser.symbol !== previous.loser || Math.abs(Number(loser.price_change_percentage_24h) - previous.loserChange) >= 0.5) {
+            messages.push(loser.symbol.toUpperCase() + " is currently the weakest tracked mover at " + Number(loser.price_change_percentage_24h).toFixed(2) + "% over 24 hours.");
+          }
+        }
+        messages.forEach((text) => state.marketMessages.unshift({ text, time: new Date() }));
+        state.marketMessages = state.marketMessages.slice(0, 4);
+        state.lastChatSnapshot = {
+          globalChange,
+          gainer: gainer.symbol,
+          gainerChange: Number(gainer.price_change_percentage_24h),
+          loser: loser.symbol,
+          loserChange: Number(loser.price_change_percentage_24h)
+        };
+        const nodes = state.marketMessages.map((entry) => {
+          const message = document.createElement("div");
+          message.className = "market-message";
+          const text = document.createElement("span");
+          text.textContent = entry.text;
+          const time = document.createElement("time");
+          time.dateTime = entry.time.toISOString();
+          time.textContent = entry.time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + " · automated market summary";
+          message.append(text, time);
+          return message;
+        });
+        elements.marketMessages.replaceChildren(...nodes);
+      }
+
+      async function refreshMarkets() {
+        if (state.marketBusy) return;
+        state.marketBusy = true;
+        elements.marketStatus.textContent = "Refreshing live markets…";
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
+        try {
+          const ids = MARKET_COINS.map((coin) => coin.id).concat(["matic-network", "usd-coin", "tether"]).join(",");
+          const [marketResponse, globalResponse] = await Promise.all([
+            fetch(MARKET_URL + "/coins/markets?vs_currency=usd&ids=" + encodeURIComponent(ids) + "&price_change_percentage=24h&sparkline=true", { signal: controller.signal, cache: "no-store" }),
+            fetch(MARKET_URL + "/global", { signal: controller.signal, cache: "no-store" })
+          ]);
+          if (!marketResponse.ok || !globalResponse.ok) {
+            throw new Error("Market provider returned HTTP " + (!marketResponse.ok ? marketResponse.status : globalResponse.status) + ".");
+          }
+          const marketData = await marketResponse.json();
+          const globalData = (await globalResponse.json()).data;
+          if (!Array.isArray(marketData) || !marketData.length || !globalData) {
+            throw new Error("The market provider returned incomplete data.");
+          }
+          state.market = MARKET_COINS.map((coin) => marketData.find((item) => item.id === coin.id)).filter(Boolean);
+          if (!state.market.length) throw new Error("No live coin prices were returned.");
+          state.prices = new Map(marketData.filter((coin) => Number.isFinite(coin.current_price)).map((coin) => [coin.id, coin.current_price]));
+          const bitcoin = marketData.find((coin) => coin.id === "bitcoin");
+          const ethereum = marketData.find((coin) => coin.id === "ethereum");
+          elements.overviewBitcoin.textContent = bitcoin ? formatPrice(bitcoin.current_price) : "Unavailable";
+          elements.overviewEthereum.textContent = ethereum ? formatPrice(ethereum.current_price) : "Unavailable";
+          elements.overviewMarketChange.textContent = Number.isFinite(Number(globalData.market_cap_change_percentage_24h_usd))
+            ? (Number(globalData.market_cap_change_percentage_24h_usd) >= 0 ? "+" : "") + Number(globalData.market_cap_change_percentage_24h_usd).toFixed(2) + "%"
+            : "Unavailable";
+          renderMarketCards();
+          publishMarketMessages(globalData);
+          const cap = globalData.total_market_cap && globalData.total_market_cap.usd;
+          const marketChange = Number(globalData.market_cap_change_percentage_24h_usd);
+          const dominance = globalData.market_cap_percentage && Number(globalData.market_cap_percentage.btc);
+          elements.globalMarketCap.textContent = Number.isFinite(cap)
+            ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 2 }).format(cap)
+            : "Unavailable";
+          elements.globalMarketChange.textContent = Number.isFinite(marketChange)
+            ? (marketChange >= 0 ? "+" : "") + marketChange.toFixed(2) + "%"
+            : "Unavailable";
+          elements.btcDominance.textContent = Number.isFinite(dominance) ? dominance.toFixed(1) + "%" : "Unavailable";
+          elements.marketStatus.textContent = "Live · refreshes every 60 seconds";
+          elements.marketUpdated.textContent = "Updated " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+          if (state.account && currentNetwork()) {
+            try {
+              await Promise.all([loadBalances(), refreshNetworkMetrics()]);
+            } catch (error) {
+              showStatus("Market prices loaded, but wallet balances could not be refreshed: " + error.message, "error");
+            }
+          }
+        } catch (error) {
+          elements.marketStatus.textContent = "Live market data unavailable";
+          elements.marketUpdated.textContent = error.name === "AbortError" ? "Request timed out · retrying in 60 seconds" : error.message;
+          if (!state.market.length) {
+            elements.marketGrid.replaceChildren(Object.assign(document.createElement("div"), {
+              className: "market-empty",
+              textContent: "Could not load live crypto prices. Check your connection or retry shortly."
+            }));
+            elements.marketMessages.replaceChildren(Object.assign(document.createElement("div"), {
+              className: "market-empty",
+              textContent: "Automated market summaries require a live market-data connection."
+            }));
+          }
+        } finally {
+          clearTimeout(timeout);
+          state.marketBusy = false;
+        }
+      }
+
+      async function connectWallet() {
+        if (!window.ethereum || typeof window.ethereum.request !== "function") {
+          showStatus("No browser wallet was found. Install a wallet such as MetaMask, then reload this page.", "error");
+          return;
+        }
+        state.provider = window.ethereum;
+        try {
+          const accounts = await state.provider.request({ method: "eth_requestAccounts" });
+          if (!accounts.length) throw new Error("The wallet did not return an account. Unlock it and try again.");
+          state.account = accounts[0];
+          state.chainId = await state.provider.request({ method: "eth_chainId" });
+          setConnectedUi();
+          if (!currentNetwork()) {
+            showStatus("Wallet connected on an unsupported network. Choose Ethereum, Base, Arbitrum or Polygon from the network menu.", "error");
+          } else {
+            clearStatus();
+          }
+          if (currentNetwork()) {
+            await Promise.all([loadBalances(), refreshNetworkMetrics()]);
+          } else {
+            await loadBalances();
+          }
+        } catch (error) {
+          showStatus(error.message || "Could not connect to your wallet.", "error");
+        }
+      }
+
+      async function switchNetwork(chainId) {
+        const network = NETWORKS[chainId];
+        if (!network) {
+          showStatus("Choose one of the supported networks.", "error");
+          return;
+        }
+        if (!state.provider || !state.account) {
+          elements.networkSelect.value = state.chainId && NETWORKS[state.chainId] ? state.chainId : "";
+          showStatus("Connect your browser wallet before switching networks.", "error");
+          return;
+        }
+        try {
+          await state.provider.request({ method: "wallet_switchEthereumChain", params: [{ chainId }] });
+        } catch (error) {
+          if (error.code !== 4902) {
+            elements.networkSelect.value = state.chainId && NETWORKS[state.chainId] ? state.chainId : "";
+            showStatus(error.message || "The wallet could not switch networks.", "error");
+            return;
+          }
+          try {
+            await state.provider.request({
+              method: "wallet_addEthereumChain",
+              params: [{
+                chainId,
+                chainName: network.fullName,
+                nativeCurrency: { name: network.nativeName, symbol: network.symbol, decimals: 18 },
+                rpcUrls: [network.rpcUrl],
+                blockExplorerUrls: [network.explorer]
+              }]
+            });
+          } catch (addError) {
+            elements.networkSelect.value = state.chainId && NETWORKS[state.chainId] ? state.chainId : "";
+            showStatus(addError.message || "The network was not added to your wallet.", "error");
+            return;
+          }
+        }
+        try {
+          state.chainId = await state.provider.request({ method: "eth_chainId" });
+          setConnectedUi();
+          clearStatus();
+          if (currentNetwork()) {
+            await Promise.all([loadBalances(), refreshNetworkMetrics()]);
+          }
+          else showStatus("The wallet did not switch to the requested network.", "error");
+        } catch (error) {
+          showStatus("Network switched, but wallet data could not be refreshed: " + (error.message || "request failed"), "error");
+        }
+      }
+
+      async function refreshWallet() {
+        if (!state.provider || !state.account) {
+          showStatus("Connect a browser wallet first to load your balances.", "error");
+          return;
+        }
+        try {
+          state.chainId = await state.provider.request({ method: "eth_chainId" });
+          setConnectedUi();
+          await Promise.all([loadBalances(), refreshNetworkMetrics()]);
+        } catch (error) {
+          showStatus("Could not refresh wallet data: " + (error.message || "wallet request failed"), "error");
+        }
+      }
+
+      async function refreshNetworkMetrics() {
+        if (!state.provider || !state.account || !currentNetwork()) {
+          elements.latestBlock.textContent = "Connect wallet";
+          elements.gasPrice.textContent = "—";
+          return;
+        }
+        const account = state.account;
+        const chainId = state.chainId;
+        const results = await Promise.allSettled([
+          state.provider.request({ method: "eth_blockNumber" }),
+          state.provider.request({ method: "eth_gasPrice" })
+        ]);
+        if (state.account !== account || state.chainId !== chainId) return;
+        if (results[0].status === "fulfilled" && /^0x[0-9a-f]+$/i.test(results[0].value)) {
+          elements.latestBlock.textContent = BigInt(results[0].value).toLocaleString("en-US");
+        } else {
+          elements.latestBlock.textContent = "Unavailable";
+        }
+        if (results[1].status === "fulfilled" && /^0x[0-9a-f]+$/i.test(results[1].value)) {
+          const gwei = Number(formatUnits(BigInt(results[1].value).toString(), 9, 3));
+          elements.gasPrice.textContent = Number.isFinite(gwei) ? gwei.toFixed(2) + " Gwei" : "Unavailable";
+        } else {
+          elements.gasPrice.textContent = "Unavailable";
+        }
+      }
+
+      function closeSendModal() {
+        elements.sendModal.classList.remove("open");
+        elements.sendForm.reset();
+        elements.sendError.textContent = "";
+        elements.sendError.className = "status";
+      }
+
+      function openUniswap() {
+        const input = elements.swapInput.value;
+        const output = elements.swapOutput.value;
+        if (input === output) {
+          showStatus("Choose two different tokens to continue to Uniswap.", "error");
+          return;
+        }
+        const network = currentNetwork();
+        if (!network) {
+          showStatus("Connect your wallet on a supported network before opening a network-specific swap.", "error");
+          return;
+        }
+        const url = new URL("https://app.uniswap.org/swap");
+        url.searchParams.set("chain", network.uniswapSlug);
+        url.searchParams.set("inputCurrency", input === "native" ? network.symbol : input);
+        url.searchParams.set("outputCurrency", output === "native" ? network.symbol : output);
+        window.open(url.toString(), "_blank", "noopener,noreferrer");
+      }
+
+      async function sendEth(event) {
+        event.preventDefault();
+        if (!state.provider || !state.account) {
+          showStatus("Connect your wallet before sending ETH.", "error");
+          closeSendModal();
+          return;
+        }
+        const network = currentNetwork();
+        if (!network) {
+          showStatus("Switch to a supported network before sending its native token.", "error");
+          closeSendModal();
+          return;
+        }
+        const recipient = elements.recipientInput.value.trim();
+        if (!/^0x[a-fA-F0-9]{40}$/.test(recipient)) {
+          showSendError("Enter a valid 42-character Ethereum address.");
+          return;
+        }
+        let value;
+        try {
+          value = parseNative(elements.amountInput.value, network.symbol);
+        } catch (error) {
+          showSendError(error.message);
+          return;
+        }
+
+        state.busy = true;
+        setConnectedUi();
+        elements.confirmSendButton.disabled = true;
+        elements.confirmSendButton.textContent = "Waiting for wallet…";
+        try {
+          const hash = await state.provider.request({
+            method: "eth_sendTransaction",
+            params: [{ from: state.account, to: recipient, value }]
+          });
+          closeSendModal();
+          const message = document.createDocumentFragment();
+          message.appendChild(document.createTextNode("Transaction submitted. "));
+          const link = document.createElement("a");
+          link.href = network.explorer + "/tx/" + encodeURIComponent(hash);
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = "View on block explorer";
+          message.appendChild(link);
+          showStatus(message, "success");
+          elements.activityContent.textContent = network.symbol + " sent · " + abbreviatedAddress(recipient) + " · " + abbreviatedAddress(hash);
+          await loadBalances();
+        } catch (error) {
+          showSendError(error.message || "The transaction was not completed.");
+        } finally {
+          state.busy = false;
+          elements.confirmSendButton.disabled = false;
+          elements.confirmSendButton.textContent = "Review in wallet";
+          setConnectedUi();
+        }
+      }
+
+      elements.connectButton.addEventListener("click", connectWallet);
+      elements.refreshButton.addEventListener("click", refreshWallet);
+      elements.networkSelect.addEventListener("change", (event) => switchNetwork(event.target.value));
+      elements.assetSendButton.addEventListener("click", () => elements.sendButton.click());
+      elements.assetReceiveButton.addEventListener("click", () => elements.receiveButton.click());
+      elements.privacyButton.addEventListener("click", () => {
+        state.hiddenBalances = !state.hiddenBalances;
+        updatePrivacy();
+      });
+      document.getElementById("refreshMarketButton").addEventListener("click", refreshMarkets);
+      document.getElementById("openDeFiUniswap").addEventListener("click", openUniswap);
+      elements.lidoButton.addEventListener("click", () => {
+        if (state.chainId !== "0x1") {
+          showStatus("Lido staking is available here only on Ethereum Mainnet. Switch networks before opening Lido.", "error");
+          return;
+        }
+        window.open("https://stake.lido.fi/", "_blank", "noopener,noreferrer");
+      });
+      elements.sendButton.addEventListener("click", () => {
+        if (!state.account || !currentNetwork()) {
+          showStatus("Connect your wallet on a supported network before sending its native token.", "error");
+          return;
+        }
+        clearStatus();
+        elements.sendError.textContent = "";
+        elements.sendError.className = "status";
+        elements.sendModal.classList.add("open");
+        elements.recipientInput.focus();
+      });
+      elements.receiveButton.addEventListener("click", async () => {
+        if (!state.account) return;
+        try {
+          await navigator.clipboard.writeText(state.account);
+          showStatus("Wallet address copied: " + state.account, "success");
+        } catch (error) {
+          showStatus("Your wallet address is " + state.account + ". Clipboard access was unavailable.", "error");
+        }
+      });
+      document.getElementById("closeSendButton").addEventListener("click", closeSendModal);
+      document.getElementById("cancelSendButton").addEventListener("click", closeSendModal);
+      elements.sendModal.addEventListener("click", (event) => {
+        if (event.target === elements.sendModal) closeSendModal();
+      });
+      elements.sendForm.addEventListener("submit", sendEth);
+      document.getElementById("swapButton").addEventListener("click", openUniswap);
+
+      if (window.ethereum && typeof window.ethereum.on === "function") {
+        window.ethereum.on("accountsChanged", (accounts) => {
+          state.account = accounts[0] || null;
+          clearStatus();
+          setConnectedUi();
+          if (state.account) {
+            clearWalletData("Reading balances for the selected account…");
+            Promise.all([loadBalances(), refreshNetworkMetrics()]).catch((error) => showStatus("Could not refresh wallet data: " + error.message, "error"));
+          }
+          else {
+            clearWalletData("Connect your wallet to see on-chain assets.");
+          }
+        });
+        window.ethereum.on("chainChanged", (chainId) => {
+          state.chainId = chainId;
+          setConnectedUi();
+          if (state.account && currentNetwork()) {
+            clearStatus();
+            Promise.all([loadBalances(), refreshNetworkMetrics()]).catch((error) => showStatus("Could not refresh wallet data: " + error.message, "error"));
+          } else if (state.account) {
+            showStatus("Your wallet is on an unsupported network. Switch to Ethereum, Base, Arbitrum or Polygon.", "error");
+            loadBalances().catch((error) => showStatus("Could not load balances: " + error.message, "error"));
+          }
+        });
+      }
+
+      buildWorkspaceViews();
+      window.addEventListener("hashchange", activateWorkspace);
+      activateWorkspace();
+      setConnectedUi();
+      updatePrivacy();
+      refreshMarkets();
+      state.marketTimer = setInterval(refreshMarkets, 60000);
+      setInterval(refreshNetworkMetrics, 30000);
+    })();
+  </script>
+  <script>
+    (() => {
+      const canvas = document.getElementById("worldWallpaper");
+      const context = canvas.getContext("2d");
+      if (!context) return;
+
+      const landShapes = [
+        [[-168, 70], [-145, 72], [-128, 58], [-124, 48], [-117, 32], [-105, 22], [-98, 17], [-90, 15], [-83, 9], [-77, 9], [-81, 25], [-97, 28], [-108, 31], [-116, 35], [-124, 42], [-132, 53], [-150, 60]],
+        [[-74, 83], [-22, 82], [-39, 58], [-54, 59], [-66, 68]],
+        [[-81, 12], [-68, 10], [-52, 4], [-35, -8], [-43, -22], [-50, -33], [-68, -55], [-76, -42], [-80, -10]],
+        [[-11, 36], [1, 44], [15, 55], [31, 60], [42, 52], [34, 42], [25, 36], [14, 36], [3, 37]],
+        [[-17, 36], [10, 38], [33, 30], [49, 12], [42, -12], [33, -31], [18, -35], [4, -27], [-8, -5], [-16, 15]],
+        [[30, 70], [58, 72], [85, 67], [106, 72], [132, 60], [154, 57], [178, 52], [160, 42], [143, 43], [130, 35], [119, 22], [105, 8], [91, 8], [78, 20], [61, 25], [47, 39], [35, 48]],
+        [[112, -11], [154, -11], [153, -27], [139, -39], [116, -34]],
+        [[47, -13], [50, -16], [49, -25], [45, -24]]
+      ];
+
+      function insidePolygon(longitude, latitude, polygon) {
+        let inside = false;
+        for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+          const a = polygon[i];
+          const b = polygon[j];
+          const crosses = (a[1] > latitude) !== (b[1] > latitude)
+            && longitude < ((b[0] - a[0]) * (latitude - a[1])) / (b[1] - a[1]) + a[0];
+          if (crosses) inside = !inside;
+        }
+        return inside;
+      }
+
+      const landDots = [];
+      for (let latitude = -58; latitude <= 78; latitude += 3.2) {
+        for (let longitude = -178; longitude <= 178; longitude += 3.2) {
+          if (landShapes.some((polygon) => insidePolygon(longitude, latitude, polygon))) {
+            landDots.push({ latitude, longitude });
+          }
+        }
+      }
+
+      let width = 0;
+      let height = 0;
+      let pixelRatio = 1;
+      let rotation = 0;
+      let lastFrame = 0;
+      let frameId = 0;
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const stars = Array.from({ length: 95 }, () => ({
+        x: Math.random(),
+        y: Math.random(),
+        size: Math.random() * 1.25 + .25,
+        phase: Math.random() * Math.PI * 2
+      }));
+
+      function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+        canvas.width = Math.round(width * pixelRatio);
+        canvas.height = Math.round(height * pixelRatio);
+        context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+        draw(performance.now());
+      }
+
+      function project(latitude, longitude, centerX, centerY, radius, angle) {
+        const lat = latitude * Math.PI / 180;
+        const lon = longitude * Math.PI / 180 + angle;
+        const depth = Math.cos(lat) * Math.cos(lon);
+        return {
+          x: centerX + radius * Math.cos(lat) * Math.sin(lon),
+          y: centerY - radius * Math.sin(lat),
+          depth
+        };
+      }
+
+      function drawGrid(centerX, centerY, radius, angle) {
+        context.lineWidth = .65;
+        context.strokeStyle = "rgba(102, 234, 215, .12)";
+        for (let latitude = -60; latitude <= 60; latitude += 30) {
+          context.beginPath();
+          let drawing = false;
+          for (let longitude = -180; longitude <= 180; longitude += 3) {
+            const point = project(latitude, longitude, centerX, centerY, radius, angle);
+            if (point.depth > 0) {
+              if (!drawing) context.moveTo(point.x, point.y);
+              else context.lineTo(point.x, point.y);
+              drawing = true;
+            } else {
+              drawing = false;
+            }
+          }
+          context.stroke();
+        }
+        for (let longitude = -180; longitude < 180; longitude += 30) {
+          context.beginPath();
+          let drawing = false;
+          for (let latitude = -87; latitude <= 87; latitude += 3) {
+            const point = project(latitude, longitude, centerX, centerY, radius, angle);
+            if (point.depth > 0) {
+              if (!drawing) context.moveTo(point.x, point.y);
+              else context.lineTo(point.x, point.y);
+              drawing = true;
+            } else {
+              drawing = false;
+            }
+          }
+          context.stroke();
+        }
+      }
+
+      function draw(time) {
+        frameId = 0;
+        if (!reducedMotion.matches && lastFrame && time - lastFrame < 32) {
+          frameId = requestAnimationFrame(draw);
+          return;
+        }
+        lastFrame = time;
+        context.clearRect(0, 0, width, height);
+        const compact = width < 700;
+        const centerX = width * (compact ? .76 : .77);
+        const centerY = height * (compact ? .24 : .43);
+        const radius = Math.max(105, Math.min(height * (compact ? .2 : .34), width * (compact ? .34 : .28), 365));
+        const angle = rotation;
+
+        stars.forEach((star) => {
+          const alpha = .12 + (Math.sin(time * .00055 + star.phase) + 1) * .11;
+          context.fillStyle = "rgba(156, 229, 218, " + alpha.toFixed(3) + ")";
+          context.beginPath();
+          context.arc(star.x * width, star.y * height, star.size, 0, Math.PI * 2);
+          context.fill();
+        });
+
+        const halo = context.createRadialGradient(centerX, centerY, radius * .55, centerX, centerY, radius * 1.55);
+        halo.addColorStop(0, "rgba(35, 132, 127, .12)");
+        halo.addColorStop(.55, "rgba(26, 107, 111, .055)");
+        halo.addColorStop(1, "rgba(16, 38, 42, 0)");
+        context.fillStyle = halo;
+        context.beginPath();
+        context.arc(centerX, centerY, radius * 1.55, 0, Math.PI * 2);
+        context.fill();
+
+        const ocean = context.createRadialGradient(centerX - radius * .36, centerY - radius * .45, radius * .08, centerX, centerY, radius);
+        ocean.addColorStop(0, "rgba(24, 78, 83, .67)");
+        ocean.addColorStop(.68, "rgba(12, 42, 49, .62)");
+        ocean.addColorStop(1, "rgba(8, 24, 31, .75)");
+        context.fillStyle = ocean;
+        context.beginPath();
+        context.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        context.fill();
+
+        context.save();
+        context.beginPath();
+        context.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        context.clip();
+        drawGrid(centerX, centerY, radius, angle);
+        landDots.forEach((dot) => {
+          const point = project(dot.latitude, dot.longitude, centerX, centerY, radius, angle);
+          if (point.depth <= .02) return;
+          const glow = Math.max(0, point.depth);
+          context.fillStyle = "rgba(116, 239, 204, " + (.12 + glow * .42).toFixed(3) + ")";
+          context.beginPath();
+          context.arc(point.x, point.y, .65 + glow * .65, 0, Math.PI * 2);
+          context.fill();
+        });
+
+        [[40.7, -74], [51.5, -.1], [1.3, 103.8], [-33.9, 151.2]].forEach((city, index) => {
+          const point = project(city[0], city[1], centerX, centerY, radius, angle);
+          if (point.depth < .08) return;
+          const pulse = 2 + (Math.sin(time * .002 + index) + 1) * 1.3;
+          context.fillStyle = "rgba(200, 250, 120, .72)";
+          context.beginPath();
+          context.arc(point.x, point.y, 1.4, 0, Math.PI * 2);
+          context.fill();
+          context.strokeStyle = "rgba(200, 250, 120, .24)";
+          context.lineWidth = .8;
+          context.beginPath();
+          context.arc(point.x, point.y, pulse, 0, Math.PI * 2);
+          context.stroke();
+        });
+        context.restore();
+
+        context.strokeStyle = "rgba(115, 225, 209, .28)";
+        context.lineWidth = 1;
+        context.beginPath();
+        context.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        context.stroke();
+        context.save();
+        context.translate(centerX, centerY);
+        context.rotate(-.16);
+        context.strokeStyle = "rgba(129, 219, 205, .18)";
+        context.beginPath();
+        context.ellipse(0, 0, radius * 1.25, radius * .29, 0, 0, Math.PI * 2);
+        context.stroke();
+        context.restore();
+
+        if (!reducedMotion.matches && !document.hidden) {
+          rotation += .0018;
+          frameId = requestAnimationFrame(draw);
+        }
+      }
+
+      window.addEventListener("resize", resize, { passive: true });
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden && frameId) {
+          cancelAnimationFrame(frameId);
+          frameId = 0;
+        } else if (!document.hidden && !frameId) {
+          frameId = requestAnimationFrame(draw);
+        }
+      });
+      reducedMotion.addEventListener("change", () => {
+        if (!reducedMotion.matches && !document.hidden && !frameId) frameId = requestAnimationFrame(draw);
+        if (reducedMotion.matches && frameId) {
+          cancelAnimationFrame(frameId);
+          frameId = 0;
+        }
+        draw(performance.now());
+      });
+      resize();
+    })();
+  </script>
+</body>
+</html>
